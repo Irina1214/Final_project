@@ -4,8 +4,9 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$x;
+import java.time.Duration;
+
+import static com.codeborne.selenide.Selenide.*;
 
 /**
  * Page Object для страницы создания объявления.
@@ -15,26 +16,42 @@ import static com.codeborne.selenide.Selenide.$x;
 public class AdCreationPage {
 
     public SelenideElement titleField() {
-        return $("input[placeholder='Название']").shouldBe(Condition.visible);
+        return $("input[name='name'][placeholder='Название']");
     }
 
     public SelenideElement descriptionField() {
-        return $("textarea[placeholder='Описание товара']").shouldBe(Condition.visible);
+        return $("textarea[name='description'][placeholder='Описание товара']");
     }
 
     public SelenideElement priceField() {
-        return $("input[placeholder='Стоимость']").shouldBe(Condition.visible);
+        return $("input[name='price'][placeholder='Стоимость']");
     }
 
     public SelenideElement publishButton() {
-        return $x("//button[text()='Опубликовать']").shouldBe(Condition.enabled);
+        return $x("//button[text()='Опубликовать' and @type='submit']");
+    }
+
+    @Step("Дождаться загрузки формы создания объявления")
+    public void waitForFormLoad() {
+        titleField().shouldBe(Condition.visible, Duration.ofSeconds(10));
+        publishButton().shouldBe(Condition.visible);
     }
 
     @Step("Создать объявление")
     public void createAd(String title, String description, String price) {
+        waitForFormLoad();
+
+        titleField().clear();
         titleField().setValue(title);
+
+        descriptionField().clear();
         descriptionField().setValue(description);
+
+        priceField().clear();
         priceField().setValue(price);
-        publishButton().click();
+
+        publishButton().shouldBe(Condition.enabled).click();
+
+        sleep(2000);
     }
 }

@@ -1,6 +1,7 @@
 package stepdefs;
 
 import api.UserApi;
+import com.codeborne.selenide.Selenide;
 import helpers.TestData;
 import helpers.UserContext;
 import io.cucumber.java.en.And;
@@ -10,7 +11,11 @@ import io.qameta.allure.Step;
 import pages.AuthPage;
 import pages.MainPage;
 
-import static com.codeborne.selenide.Selenide.sleep;
+import java.time.Duration;
+
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.webdriver;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,21 +43,38 @@ public class LoginSteps {
         String name = TestData.randomName();
 
         String token = UserApi.registerUser(email, password, name);
-        assertNotNull(token, "Пользователь должен быть успешно создан через API");
 
-        userContext.setUserCredentials(email, password); // Убрали name
+        assertNotNull(token, "User should be created successfully via API");
+
+        userContext.setUserCredentials(email, password);
+        userContext.setAccessToken(token);
+        userContext.setCreatedViaApi(true);
     }
 
     @When("user logs in via UI")
     @Step("Вход через UI")
     public void loginViaUI() {
+        mainPage.openMainPage();
         authPage.login(userContext.getEmail(), userContext.getPassword());
     }
 
     @Then("login is successful")
     @Step("Проверка успешного входа")
     public void verifyLogin() {
-        sleep(3000);
-        assertTrue(mainPage.isLoggedIn(), "Пользователь должен быть успешно авторизован");
+
+        Selenide.sleep(2000);
+
+        String currentUrl = webdriver().driver().url();
+        assertTrue(currentUrl.contains("qa-desk.stand.praktikum-services.ru"),
+                "After login should be on main page");
+
+        $("input[placeholder='Я хочу купить...']")
+                .shouldBe(visible, Duration.ofSeconds(5));
+
+        mainPage.logoutButton()
+                .shouldBe(visible, Duration.ofSeconds(5));
+
+        mainPage.authButton()
+                .shouldNotBe(visible);
     }
 }

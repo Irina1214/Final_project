@@ -1,13 +1,13 @@
 package stepdefs;
 
 import config.TestConfig;
+import helpers.AuthHelper;
 import helpers.UserContext;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import io.cucumber.java.Scenario;
-import pages.MainPage;
 
-import static com.codeborne.selenide.Selenide.*;
+import static com.codeborne.selenide.Selenide.closeWebDriver;
+import static com.codeborne.selenide.Selenide.open;
 
 /**
  * Класс с хуками для настройки и завершения тестов.
@@ -16,26 +16,24 @@ import static com.codeborne.selenide.Selenide.*;
  */
 public class Hooks {
     private final UserContext userContext;
-    private final MainPage mainPage;
 
-    public Hooks(UserContext userContext, MainPage mainPage) {
+    public Hooks(UserContext userContext) {
         this.userContext = userContext;
-        this.mainPage = mainPage;
     }
 
-    @Before
+    @Before(order = 1)
     public void setUp() {
         TestConfig.setup();
-        mainPage.openMainPage();
+
+        open("/");
+
+        AuthHelper.clearAuth();
     }
 
     @After
-    public void tearDown(Scenario scenario) {
-        if (scenario.isFailed()) {
-            screenshot(scenario.getName().replaceAll("[^a-zA-Z0-9]", "_"));
-        }
-
+    public void tearDown() {
         userContext.clear();
+
         closeWebDriver();
     }
 }

@@ -1,38 +1,30 @@
 package helpers;
 
+import com.github.javafaker.Faker;
 
-import java.time.Instant;
-import java.util.Random;
+import java.util.Locale;
+
 /**
  * Класс для генерации тестовых данных.
  *
  * @author Zakirova Irina
  */
 public class TestData {
-    private static final Random random = new Random();
+    private static final Faker faker = new Faker(new Locale("ru"));
 
     public static String randomEmail() {
-        return "user_" + Instant.now().getEpochSecond() + random.nextInt(9999) + "@test.com";
+        return "user_" + System.currentTimeMillis() + "_" + faker.number().numberBetween(1000, 9999) + "@test.com";
     }
 
     public static String randomPassword() {
-        return "Password" + random.nextInt(999999) + "!";
+        return "Password" + faker.number().numberBetween(100000, 999999) + "!";
     }
 
     public static String randomName() {
-        String[] names = {"Иван", "Мария", "Алексей", "Екатерина"};
-        return names[random.nextInt(names.length)] + "_" + random.nextInt(1000);
-    }
-
-    public static String randomAdTitle() {
-        return "Объявление " + System.currentTimeMillis();
-    }
-
-    public static String randomAdDescription() {
-        return "Описание объявления " + System.currentTimeMillis();
+        return faker.name().firstName() + "_" + faker.number().numberBetween(1, 1000);
     }
 
     public static String randomPrice() {
-        return String.valueOf(1000 + random.nextInt(9000));
+        return String.valueOf(faker.number().numberBetween(100, 10000));
     }
 }

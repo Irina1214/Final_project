@@ -1,20 +1,19 @@
 package api;
 
-import io.restassured.RestAssured;
 import io.restassured.response.Response;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
+
 /**
  * Класс для работы с API пользователей.
  *
  * @author Zakirova Irina
  */
 public class UserApi {
-
-    static {
-        RestAssured.baseURI = "https://qa-desk.stand.praktikum-services.ru/api";
-    }
-
-    public static String registerUser(String email, String password, String name) {
+    public static Map<String, Object> registerUserFull(String email, String password, String name) {
         String requestBody = String.format(
                 "{\"email\": \"%s\", \"password\": \"%s\", \"name\": \"%s\"}",
                 email, password, name
@@ -25,8 +24,30 @@ public class UserApi {
                 .body(requestBody)
                 .post("/signup");
 
-        return response.statusCode() == 201 ?
-                response.jsonPath().getString("access_token") :
-                null;
+        if (response.statusCode() != 201) {
+            return null;
+        }
+
+        String token = response.jsonPath().getString("access_token.access_token");
+        if (token == null) {
+            token = response.jsonPath().getString("access_token");
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("token", token);
+        result.put("userId", response.jsonPath().getInt("user.id"));
+        result.put("userName", response.jsonPath().getString("user.name"));
+        result.put("email", response.jsonPath().getString("user.email"));
+        result.put("password", password);
+
+        return result;
+    }
+
+    public static String registerUser(String email, String password, String name) {
+        Map<String, Object> result = registerUserFull(email, password, name);
+        if (result != null) {
+            return (String) result.get("token");
+        }
+        return null;
     }
 }
